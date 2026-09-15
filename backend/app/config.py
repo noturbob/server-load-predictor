@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # Forecasting
     forecast_horizon: int = 168
+    train_fast: bool = False  # fewer trees / sparser origins (used by tests)
 
     # Startup behaviour
     auto_seed: bool = True
