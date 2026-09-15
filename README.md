@@ -189,3 +189,7 @@ frontend/
 - Holiday and event calendars as features. The model currently can't anticipate a Black Friday it
   has never seen, which you can watch happen at the end of the simulation.
 - A global model across many clusters, and probabilistic cost optimization (spot vs. on-demand).
+
+## License
+
+[MIT](LICENSE)
