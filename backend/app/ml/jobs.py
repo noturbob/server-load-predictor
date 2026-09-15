@@ -22,7 +22,7 @@ class RetrainManager:
     def active(self) -> dict | None:
         return next((j for j in self.jobs.values() if j["status"] in ("queued", "running")), None)
 
-    def start(self, clock, forecast_service) -> dict:
+    def start(self, clock, forecast_service, rebuild_backfill: bool = False) -> dict:
         with self._lock:
             if (job := self.active()) is not None:
                 return job
@@ -41,6 +41,8 @@ class RetrainManager:
             try:
                 train_all(train_end=clock.now, progress=lambda msg: job.update(message=msg))
                 forecast_service.reload()
+                if rebuild_backfill:
+                    clock.rebuild_backfill()
                 job.update(status="done", message=f"Retrained on data up to {clock.now.isoformat()}")
             except Exception as exc:  # report failure to the client
                 log.exception("Retrain failed")

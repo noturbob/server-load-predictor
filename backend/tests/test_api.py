@@ -100,3 +100,28 @@ def test_model_metrics_and_retrain(client):
         time.sleep(0.5)
     assert job["status"] == "done", job
     assert client.get("/models/retrain/missing").status_code == 404
+
+
+def test_reset_after_midway_retrain_retrains_on_start(client):
+    from app.ml.jobs import retrain_manager
+    from app.services import forecast_service
+
+    client.post("/simulation/step", params={"hours": 2})
+    job = client.post("/models/retrain").json()
+    _wait(client, job["id"])
+    assert forecast_service.latest_train_end() > pd.Timestamp(client.get("/simulation").json()["start"])
+
+    reset = client.post("/simulation/reset").json()
+    active = retrain_manager.active()
+    assert active is not None
+    assert _wait(client, active["id"])["status"] == "done"
+    assert forecast_service.latest_train_end() == pd.Timestamp(reset["start"])
+
+
+def _wait(client, job_id):
+    for _ in range(300):
+        job = client.get(f"/models/retrain/{job_id}").json()
+        if job["status"] in {"done", "failed"}:
+            return job
+        time.sleep(0.5)
+    raise AssertionError("retrain did not finish")

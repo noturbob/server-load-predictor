@@ -118,7 +118,6 @@ export function ForecastChart({
                 stroke={COLORS.muted}
                 strokeDasharray="6 4"
                 ifOverflow="extendDomain"
-                label={{ value: "Capacity", position: "insideTopLeft", fill: COLORS.muted, fontSize: 11 }}
               />
             )}
             <ReferenceLine

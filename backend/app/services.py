@@ -49,6 +49,10 @@ class ForecastService:
                 f"No trained model for {cluster_id}/{metric}. Run `python -m app.ml.train`."
             ) from None
 
+    def latest_train_end(self) -> pd.Timestamp:
+        ends = [pd.Timestamp(e.train_end) for e in self._models.values()]
+        return max(ends) if ends else pd.Timestamp.min.tz_localize("UTC")
+
     def production_models(self) -> dict[tuple[str, str], str]:
         return {key: e.best_model for key, e in self._models.items()}
 

@@ -70,6 +70,12 @@ class SimulationClock:
                 n = forecast_service.persist(session, origins)
                 log.info("Backfilled %s forecasts", n)
 
+    def rebuild_backfill(self) -> None:
+        """Recompute the lead-up forecasts, e.g. after models were retrained."""
+        with session_scope() as session:
+            delete_forecasts_after(session, self.now - pd.Timedelta(hours=BACKFILL_HOURS + 25))
+        self.ensure_backfill()
+
     def step(self, hours: int = 1) -> dict:
         with self._lock:
             if not self.ready:
