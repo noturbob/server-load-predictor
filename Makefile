@@ -1,4 +1,4 @@
-.PHONY: setup seed train api web dev test lint up down
+.PHONY: setup seed train snapshot api web dev test lint up down
 
 setup:
 	cd backend && uv sync
@@ -9,6 +9,9 @@ seed:
 
 train:
 	cd backend && uv run python -m app.ml.train
+
+snapshot:
+	cd backend && uv run python -m app.data.export_snapshot
 
 api:
 	cd backend && uv run uvicorn app.main:app --reload --port 8000

@@ -10,9 +10,9 @@ import { SimControls } from "@/components/sim-controls";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Fleet", match: (p: string) => p === "/" || p.startsWith("/clusters") },
-  { href: "/models", label: "Models", match: (p: string) => p.startsWith("/models") },
-  { href: "/settings", label: "Policy", match: (p: string) => p.startsWith("/settings") },
+  { href: "/dashboard", label: "Fleet", match: (p: string) => p === "/dashboard" || p.startsWith("/dashboard/clusters") },
+  { href: "/dashboard/models", label: "Models", match: (p: string) => p.startsWith("/dashboard/models") },
+  { href: "/dashboard/policy", label: "Policy", match: (p: string) => p.startsWith("/dashboard/policy") },
 ];
 
 export function SiteHeader() {
@@ -22,7 +22,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-auto w-full max-w-[1320px] flex-wrap items-stretch gap-x-8 px-4 sm:h-16 sm:flex-nowrap sm:px-8">
-        <Link href="/" className="flex h-14 items-center sm:h-auto" aria-label="Load Predictor home">
+        <Link href="/dashboard" className="flex h-14 items-center sm:h-auto" aria-label="Dashboard home">
           <Logo />
         </Link>
 

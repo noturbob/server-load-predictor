@@ -72,7 +72,7 @@ export function ActionList({
                 <span className={urgency.className}>{urgency.label}</span>
                 <span className="text-muted-foreground">· {hoursFromNow(a.at, now)}</span>
                 {showCluster && a.clusterId && (
-                  <Link href={`/clusters/${a.clusterId}`} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+                  <Link href={`/dashboard/clusters/${a.clusterId}`} className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
                     · {a.clusterName}
                   </Link>
                 )}

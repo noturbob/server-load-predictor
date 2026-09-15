@@ -157,7 +157,7 @@ function SectionRule({ index, title }: { index: string; title: string }) {
 function ClusterRow({ cluster: c, now }: { cluster: ClusterSummary; now?: string }) {
   const utilization = c.latest ? c.latest.cpu / (c.current_servers * c.config.server_capacity) : null;
   return (
-    <Link href={`/clusters/${c.id}`} className="group block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2">
+    <Link href={`/dashboard/clusters/${c.id}`} className="group block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2">
       <Panel className="grid transition-colors group-hover:border-foreground/25 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <div className="flex flex-col gap-5 p-5 sm:p-6">
           <div className="flex items-start justify-between gap-3">

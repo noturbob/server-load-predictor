@@ -1,0 +1,1 @@
+Load Predictor: scale servers before the traffic arrives

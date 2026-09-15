@@ -67,7 +67,8 @@ boot. Forecasting the load lets you scale ahead of time.
 docker compose up --build        # or: make up
 ```
 
-Open http://localhost:3000. On the first start the API seeds the data and trains every model, which
+Open http://localhost:3000 for the landing page, or http://localhost:3000/dashboard for the
+dashboard. On the first start the API seeds the data and trains every model, which
 takes about 2 minutes. The dashboard starts once the API is healthy. Data and models are kept in
 Docker volumes.
 
@@ -182,11 +183,27 @@ backend/
     simulation/          simulation clock
   tests/                 data, ML (incl. leakage test), recommender, API
 frontend/
-  src/app/               pages: overview, clusters/[id], models, settings
+  src/app/(site)/        landing page at /
+  src/app/(dashboard)/   dashboard at /dashboard: fleet, clusters/[id], models, policy
+  src/content/           snapshot.json: real model output rendered by the landing page
   src/components/        charts/, action list, status badge, simulation controls, …
   src/hooks/use-api.ts   TanStack Query hooks keyed on simulated time
   src/lib/               API client, types, formatting
 ```
+
+## Landing page
+
+The site root (`/`) is a static landing page. It needs no API: its charts and numbers come from
+`frontend/src/content/snapshot.json`, exported from the trained models at the simulation start.
+After retraining or changing the dataset, regenerate it with:
+
+```bash
+make snapshot
+```
+
+That makes the frontend deployable on its own (for example to Vercel). Without an API
+behind it, the `/dashboard` pages show a "start the backend" message, and the landing page
+links to the local setup.
 
 ## Future work
 

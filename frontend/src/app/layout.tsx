@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -19,8 +17,10 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Load Predictor", template: "%s · Load Predictor" },
-  description: "Forecast data-center load and scale servers before traffic arrives.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: { default: "Load Predictor · Scale servers before the traffic arrives", template: "%s · Load Predictor" },
+  description:
+    "An open-source forecaster that predicts data-center CPU, memory and network load a week ahead and turns it into server scaling actions.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -28,14 +28,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <Providers>
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-[1320px] flex-1 px-4 pt-8 pb-16 sm:px-8">{children}</main>
-          <SiteFooter />
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

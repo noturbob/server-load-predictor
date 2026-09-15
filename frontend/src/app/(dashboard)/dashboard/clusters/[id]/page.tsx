@@ -58,7 +58,7 @@ export default function ClusterPage() {
       <PageHeading
         eyebrow={
           <>
-            <Link href="/" className="text-brand hover:underline">
+            <Link href="/dashboard" className="text-brand hover:underline">
               Fleet
             </Link>
             <span>/</span>
