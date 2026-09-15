@@ -9,7 +9,7 @@ os.environ["SLP_ARTIFACTS_DIR"] = str(_TMP / "artifacts")
 os.environ["SLP_TRAIN_FAST"] = "true"
 os.environ["SLP_START_SIMULATION"] = "false"
 
-import pytest  # noqa: E402
+import pytest
 
 
 @pytest.fixture(scope="session")
