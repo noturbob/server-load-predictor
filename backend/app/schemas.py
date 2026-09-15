@@ -36,9 +36,9 @@ class ClusterConfigUpdate(BaseModel):
 
     @model_validator(mode="after")
     def _min_le_max(self):
-        if self.min_servers is not None and self.max_servers is not None:
-            if self.min_servers > self.max_servers:
-                raise ValueError("min_servers must be <= max_servers")
+        both_set = self.min_servers is not None and self.max_servers is not None
+        if both_set and self.min_servers > self.max_servers:
+            raise ValueError("min_servers must be <= max_servers")
         return self
 
 
