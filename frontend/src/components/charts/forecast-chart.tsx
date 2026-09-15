@@ -77,7 +77,7 @@ export function ForecastChart({
       />
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
+          <ComposedChart data={data} margin={{ top: 16, right: 24, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={COLORS.grid} />
             <XAxis
               dataKey="t"
@@ -107,8 +107,7 @@ export function ForecastChart({
             <Area
               dataKey="band"
               stroke="none"
-              fill={COLORS.forecast}
-              fillOpacity={0.14}
+              fill={COLORS.band}
               isAnimationActive={false}
               connectNulls
             />
@@ -123,7 +122,8 @@ export function ForecastChart({
             <ReferenceLine
               x={nowMs}
               stroke={COLORS.axis}
-              label={{ value: "Now", position: "top", fill: COLORS.muted, fontSize: 11 }}
+              strokeDasharray="0"
+              label={{ value: "NOW", position: "top", fill: COLORS.ink, fontSize: 10, fontFamily: "var(--font-plex-mono)", letterSpacing: 1.2 }}
             />
             <Line dataKey="actual" stroke={COLORS.actual} strokeWidth={2} dot={false} isAnimationActive={false} />
             <Line

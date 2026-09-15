@@ -36,7 +36,7 @@ export function AccuracyChart({ points, unit, height = 240 }: { points: HistoryP
       />
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+          <ComposedChart data={data} margin={{ top: 8, right: 24, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={COLORS.grid} />
             <XAxis
               dataKey="t"
@@ -61,7 +61,7 @@ export function AccuracyChart({ points, unit, height = 240 }: { points: HistoryP
                 return <TooltipBox title={fmtDateTime(label as number)} rows={rows} />;
               }}
             />
-            <Area dataKey="band" stroke="none" fill={COLORS.forecast} fillOpacity={0.1} isAnimationActive={false} />
+            <Area dataKey="band" stroke="none" fill={COLORS.band} isAnimationActive={false} />
             <Line dataKey="actual" stroke={COLORS.actual} strokeWidth={2} dot={false} isAnimationActive={false} />
             <Line dataKey="pred_24h" stroke={COLORS.forecast} strokeWidth={2} strokeDasharray="5 4" dot={false} isAnimationActive={false} />
             <Line dataKey="pred_1h" stroke={COLORS.shortTerm} strokeWidth={1.5} dot={false} isAnimationActive={false} />

@@ -1,15 +1,15 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Gauge, PiggyBank, Server, Target } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
 import { ActionList } from "@/components/action-list";
+import { CapacityMeter } from "@/components/capacity-meter";
 import { Sparkline } from "@/components/charts/sparkline";
-import { KpiCard } from "@/components/kpi-card";
+import { PageHeading, Panel, PanelBody, Readout } from "@/components/panel";
 import { ErrorState } from "@/components/state";
 import { StatusBadge } from "@/components/status-badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClusters, useModelMetrics, useSimulation } from "@/hooks/use-api";
 import { fmtCurrency, fmtFullDate, fmtNumber } from "@/lib/format";
@@ -20,15 +20,16 @@ export default function OverviewPage() {
   const clusters = useClusters();
   const metrics = useModelMetrics();
 
-  const kpis = useMemo(() => {
+  const summary = useMemo(() => {
     const list = clusters.data ?? [];
     const production = (metrics.data ?? []).filter((m) => m.is_production && m.metric === "cpu");
     const smape = production.length ? production.reduce((s, m) => s + m.smape, 0) / production.length : null;
     return {
       current: list.reduce((s, c) => s + c.current_servers, 0),
       recommended: list.reduce((s, c) => s + c.recommended_servers, 0),
+      peak: list.reduce((s, c) => s + c.peak_required_servers, 0),
       savings: list.reduce((s, c) => s + c.weekly_cost.savings_vs_current, 0),
-      atRisk: list.filter((c) => c.status === "at_risk" || c.status === "scale_up_soon").length,
+      attention: list.filter((c) => c.status === "at_risk" || c.status === "scale_up_soon"),
       accuracy: smape === null ? null : 100 - smape,
     };
   }, [clusters.data, metrics.data]);
@@ -38,141 +39,172 @@ export default function OverviewPage() {
       (clusters.data ?? [])
         .flatMap((c) => c.upcoming_actions.map((a) => ({ ...a, clusterId: c.id, clusterName: c.name })))
         .sort((a, b) => a.at.localeCompare(b.at))
-        .slice(0, 5),
+        .slice(0, 6),
     [clusters.data],
   );
 
   if (clusters.isError || sim.isError) return <ErrorState error={clusters.error ?? sim.error} />;
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Fleet overview</h1>
-        <p className="text-sm text-muted-foreground">
-          {sim.data ? `${fmtFullDate(sim.data.now)} · ` : ""}
-          Forecasts for the next 7 days, turned into scaling actions before load arrives.
-        </p>
-      </div>
+  const n = summary.attention.length;
+  const delta = summary.recommended - summary.current;
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+  return (
+    <div className="flex flex-col gap-10">
+      <PageHeading
+        eyebrow={
+          <>
+            <span className="text-brand">Fleet</span>
+            <span>/</span>
+            <span>{sim.data ? fmtFullDate(sim.data.now) : "…"}</span>
+          </>
+        }
+        title={
+          clusters.data ? (
+            n === 0 ? (
+              <>Capacity is covered for the next 24 hours.</>
+            ) : (
+              <>
+                {n} of {clusters.data.length} clusters need <span className="text-brand">more capacity</span> within 24 hours.
+              </>
+            )
+          ) : (
+            <Skeleton className="h-10 w-[28ch] max-w-full" />
+          )
+        }
+      >
+        {clusters.data && (
+          <p>
+            Following the forecast plan saves{" "}
+            <span className="font-medium text-foreground">{fmtCurrency(Math.max(summary.savings, 0))}</span> over the next 7 days
+            compared with holding today&apos;s {summary.current} servers.
+          </p>
+        )}
+      </PageHeading>
+
+      {/* Instrument strip */}
+      <Panel className="grid grid-cols-2 divide-border md:grid-cols-5 md:divide-x [&>*]:border-border max-md:[&>*:nth-child(n+3)]:border-t max-md:[&>*:nth-child(odd):not(:last-child)]:border-r">
         {clusters.data ? (
           <>
-            <KpiCard label="Servers running" value={fmtNumber(kpis.current)} hint="across all clusters" icon={<Server className="size-4" />} />
-            <KpiCard
+            <Readout className="p-5" size="lg" label="Running" value={fmtNumber(summary.current)} hint="servers across the fleet" />
+            <Readout
+              className="p-5"
+              size="lg"
               label="Recommended now"
-              value={fmtNumber(kpis.recommended)}
-              hint={
-                kpis.recommended === kpis.current
-                  ? "fleet is right-sized"
-                  : `${kpis.recommended > kpis.current ? "+" : "−"}${Math.abs(kpis.recommended - kpis.current)} vs running`
-              }
-              icon={<Target className="size-4" />}
+              value={fmtNumber(summary.recommended)}
+              hint={delta === 0 ? "right-sized" : `${delta > 0 ? "+" : "−"}${Math.abs(delta)} vs running`}
             />
-            <KpiCard
-              label="Weekly savings"
-              value={fmtCurrency(Math.max(kpis.savings, 0))}
-              hint={kpis.savings >= 0 ? "following the plan vs. running flat" : `plan costs ${fmtCurrency(-kpis.savings)} more to avoid overload`}
-              icon={<PiggyBank className="size-4" />}
+            <Readout className="p-5" size="lg" label="Peak need · 7d" value={fmtNumber(summary.peak)} hint="sum of cluster peaks (p90)" />
+            <Readout
+              className="p-5"
+              size="lg"
+              label="Saved · 7d"
+              value={fmtCurrency(Math.max(summary.savings, 0))}
+              hint={summary.savings >= 0 ? "vs running flat" : `plan costs ${fmtCurrency(-summary.savings)} more`}
             />
-            <KpiCard
+            <Readout
+              className="col-span-2 p-5 md:col-span-1"
+              size="lg"
               label="Forecast accuracy"
-              value={kpis.accuracy === null ? "—" : `${kpis.accuracy.toFixed(1)}%`}
-              hint="100 − sMAPE, CPU, 1–168h ahead"
-              icon={<Gauge className="size-4" />}
-            />
-            <KpiCard
-              label="Need attention"
-              value={`${kpis.atRisk} of ${clusters.data.length}`}
-              hint="at risk or scaling up within 24h"
-              icon={<AlertTriangle className="size-4" />}
-              className="col-span-2 lg:col-span-1"
+              value={summary.accuracy === null ? "—" : `${summary.accuracy.toFixed(1)}%`}
+              hint="100 − sMAPE · CPU · 1–168h"
             />
           </>
         ) : (
-          Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-[104px] rounded-xl" />)
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="p-5">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="mt-3 h-8 w-16" />
+            </div>
+          ))
         )}
-      </section>
+      </Panel>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="grid gap-4 lg:col-span-2">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="flex flex-col gap-4">
+          <SectionRule index="01" title="Clusters" />
           {clusters.data
-            ? clusters.data.map((c) => <ClusterCard key={c.id} cluster={c} now={sim.data?.now} />)
-            : Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)}
+            ? clusters.data.map((c) => <ClusterRow key={c.id} cluster={c} now={sim.data?.now} />)
+            : Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-56 rounded-lg" />)}
         </section>
 
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Upcoming actions</CardTitle>
-            <CardDescription>Next scaling steps across all clusters</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {clusters.data && sim.data ? (
-              <ActionList actions={upcoming} now={sim.data.now} showCluster compact />
-            ) : (
-              <Skeleton className="h-48" />
-            )}
-          </CardContent>
-        </Card>
+        <section className="flex flex-col gap-4">
+          <SectionRule index="02" title="Next actions" />
+          <Panel className="xl:sticky xl:top-24">
+            <PanelBody className="pt-5">
+              {clusters.data && sim.data ? (
+                <ActionList actions={upcoming} now={sim.data.now} showCluster compact />
+              ) : (
+                <Skeleton className="h-64" />
+              )}
+            </PanelBody>
+          </Panel>
+        </section>
       </div>
     </div>
   );
 }
 
-function ClusterCard({ cluster: c, now }: { cluster: ClusterSummary; now?: string }) {
-  const delta = c.recommended_servers - c.current_servers;
+function SectionRule({ index, title }: { index: string; title: string }) {
   return (
-    <Card className="gap-4">
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
-        <div className="min-w-0">
-          <CardTitle className="flex flex-wrap items-center gap-2">
-            {c.name}
-            <StatusBadge status={c.status} />
-          </CardTitle>
-          <CardDescription className="mt-1">{c.description}</CardDescription>
+    <div className="flex items-center gap-3">
+      <span className="font-mono text-[11px] text-brand">{index}</span>
+      <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+function ClusterRow({ cluster: c, now }: { cluster: ClusterSummary; now?: string }) {
+  const utilization = c.latest ? c.latest.cpu / (c.current_servers * c.config.server_capacity) : null;
+  return (
+    <Link href={`/clusters/${c.id}`} className="group block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2">
+      <Panel className="grid transition-colors group-hover:border-foreground/25 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <div className="flex flex-col gap-5 p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                {c.name}
+                <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground" />
+              </h3>
+              <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{c.description}</p>
+            </div>
+            <StatusBadge status={c.status} className="shrink-0" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <Readout
+              label="Servers"
+              value={
+                <span className="tabular">
+                  {c.current_servers}
+                  <span className="mx-1 text-muted-foreground">→</span>
+                  {c.recommended_servers}
+                </span>
+              }
+            />
+            <Readout
+              label="CPU now"
+              value={c.latest ? fmtNumber(c.latest.cpu) : "—"}
+              hint={utilization === null ? undefined : `${Math.round(utilization * 100)}% of running`}
+            />
+            <Readout label="Saved · 7d" value={fmtCurrency(c.weekly_cost.savings_vs_current)} />
+          </div>
+
+          <CapacityMeter current={c.current_servers} recommended={c.recommended_servers} peak={c.peak_required_servers} />
         </div>
-        <Link
-          href={`/clusters/${c.id}`}
-          className="flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
-        >
-          Details <ArrowRight className="size-4" />
-        </Link>
-      </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-[minmax(0,220px)_1fr] sm:items-center">
-        <dl className="grid grid-cols-3 gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-xs text-muted-foreground">Servers</dt>
-            <dd className="tabular text-lg font-semibold">
-              {c.current_servers}
-              <span className="text-muted-foreground"> → </span>
-              {c.recommended_servers}
-            </dd>
-            <dd className="text-xs text-muted-foreground">
-              {delta === 0 ? "no change" : `${delta > 0 ? "add" : "remove"} ${Math.abs(delta)} now`}
-            </dd>
+
+        <div className="flex flex-col border-t p-5 sm:p-6 lg:border-t-0 lg:border-l">
+          <div className="flex items-center justify-between">
+            <span className="eyebrow">CPU · past 24h</span>
+            <span className="eyebrow">
+              <span className="text-brand">Forecast</span> · next 24h
+            </span>
           </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">CPU load</dt>
-            <dd className="tabular text-lg font-semibold">{c.latest ? fmtNumber(c.latest.cpu) : "—"}</dd>
-            <dd className="text-xs text-muted-foreground">
-              {c.latest
-                ? `${Math.round((c.latest.cpu / (c.current_servers * c.config.server_capacity)) * 100)}% of running capacity`
-                : ""}
-            </dd>
+          <div className="mt-3 flex-1">
+            <Sparkline points={c.sparkline} now={now} height={150} />
           </div>
-          <div>
-            <dt className="text-xs text-muted-foreground">Weekly savings</dt>
-            <dd className="tabular text-lg font-semibold">{fmtCurrency(c.weekly_cost.savings_vs_current)}</dd>
-            <dd className="text-xs text-muted-foreground">peak need {c.peak_required_servers} servers</dd>
-          </div>
-        </dl>
-        <div>
-          <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-            <span>CPU · last 24h</span>
-            <span>next 24h forecast</span>
-          </div>
-          <Sparkline points={c.sparkline} now={now} height={96} />
         </div>
-      </CardContent>
-    </Card>
+      </Panel>
+    </Link>
   );
 }

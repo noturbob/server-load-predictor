@@ -1,18 +1,18 @@
 "use client";
 
-import { Activity, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 
+import { Logo } from "@/components/logo";
 import { SimControls } from "@/components/sim-controls";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Overview" },
-  { href: "/models", label: "Models" },
-  { href: "/settings", label: "Settings" },
+  { href: "/", label: "Fleet", match: (p: string) => p === "/" || p.startsWith("/clusters") },
+  { href: "/models", label: "Models", match: (p: string) => p.startsWith("/models") },
+  { href: "/settings", label: "Policy", match: (p: string) => p.startsWith("/settings") },
 ];
 
 export function SiteHeader() {
@@ -20,28 +20,31 @@ export function SiteHeader() {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Activity className="size-4" />
-          </span>
-          <span>Load Predictor</span>
+    <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-auto w-full max-w-[1320px] flex-wrap items-stretch gap-x-8 px-4 sm:h-16 sm:flex-nowrap sm:px-8">
+        <Link href="/" className="flex h-14 items-center sm:h-auto" aria-label="Load Predictor home">
+          <Logo />
         </Link>
 
-        <nav className="flex items-center gap-1 text-sm">
+        <nav className="order-3 -mx-1 flex w-full items-stretch gap-1 sm:order-none sm:mx-0 sm:w-auto">
           {NAV.map((item) => {
-            const active = item.href === "/" ? pathname === "/" || pathname.startsWith("/clusters") : pathname.startsWith(item.href);
+            const active = item.match(pathname);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "rounded-md px-3 py-1.5 transition-colors hover:bg-muted",
-                  active ? "bg-muted font-medium text-foreground" : "text-muted-foreground",
+                  "relative flex items-center px-3 py-3 text-sm transition-colors sm:py-0",
+                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
+                <span
+                  className={cn(
+                    "absolute inset-x-3 -bottom-px h-0.5 rounded-full transition-colors",
+                    active ? "bg-brand" : "bg-transparent",
+                  )}
+                />
               </Link>
             );
           })}
@@ -49,15 +52,15 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <SimControls />
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
+            type="button"
             aria-label="Toggle theme"
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="flex size-9 items-center justify-center rounded-md border bg-card text-muted-foreground transition-colors hover:text-foreground"
           >
             <Sun className="size-4 dark:hidden" />
             <Moon className="hidden size-4 dark:block" />
-          </Button>
+          </button>
         </div>
       </div>
     </header>

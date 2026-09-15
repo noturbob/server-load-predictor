@@ -31,14 +31,14 @@ export function ServerPlanChart({
     <div className="flex flex-col gap-3">
       <ChartLegend
         items={[
-          { label: "Recommended servers", color: COLORS.actual },
+          { label: "Recommended servers", color: COLORS.ink },
           { label: "Required by p90 forecast", color: COLORS.forecast },
           { label: `Running now (${current})`, color: COLORS.muted, kind: "dashed" },
         ]}
       />
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+          <ComposedChart data={data} margin={{ top: 8, right: 24, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={COLORS.grid} />
             <XAxis
               dataKey="t"
@@ -67,7 +67,7 @@ export function ServerPlanChart({
                   <TooltipBox
                     title={fmtDateTime(label as number)}
                     rows={[
-                      { label: "Recommended", value: String(row.servers), color: COLORS.actual },
+                      { label: "Recommended", value: String(row.servers), color: COLORS.ink },
                       { label: "Required", value: String(row.required), color: COLORS.forecast },
                       { label: "Running now", value: String(current), color: COLORS.muted, kind: "dashed" },
                     ]}
@@ -77,7 +77,7 @@ export function ServerPlanChart({
             />
             <ReferenceLine y={current} stroke={COLORS.muted} strokeDasharray="6 4" />
             <Line type="stepAfter" dataKey="required" stroke={COLORS.forecast} strokeWidth={1.5} strokeOpacity={0.8} dot={false} isAnimationActive={false} />
-            <Line type="stepAfter" dataKey="servers" stroke={COLORS.actual} strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line type="stepAfter" dataKey="servers" stroke={COLORS.ink} strokeWidth={2} dot={false} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

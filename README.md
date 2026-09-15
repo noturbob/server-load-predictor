@@ -1,4 +1,11 @@
-# Server Load Predictor
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/logo-mark-dark.svg">
+    <img src="docs/brand/logo-mark.svg" width="72" height="72" alt="Load Predictor logo">
+  </picture>
+</p>
+
+<h1 align="center">Server Load Predictor</h1>
 
 Predicts how much server capacity a data center will need **before** it needs it, and turns that
 forecast into concrete scaling actions: *"Add 8 servers by Thu 01:00"*, *"Remove 9 servers at 03:00,
@@ -9,7 +16,7 @@ save $412 this week"*.
 
 ![Fleet overview](docs/screenshot-overview.png)
 
-![Cluster detail](docs/screenshot-cluster.png)
+![Cluster detail (dark mode)](docs/screenshot-cluster.png)
 
 ## Why
 
@@ -189,6 +196,16 @@ frontend/
 - Holiday and event calendars as features. The model currently can't anticipate a Black Friday it
   has never seen, which you can watch happen at the end of the simulation.
 - A global model across many clusters, and probabilistic cost optimization (spot vs. on-demand).
+
+## Brand
+
+The mark is a stepped server-capacity line riding just above a load curve: capacity that stays ahead
+of demand. Assets live in [`docs/brand`](docs/brand) (SVG and 180/512px PNG, light and dark), and
+the social preview image is [`docs/social-preview.png`](docs/social-preview.png).
+
+The dashboard uses warm paper and ink surfaces, hairline rules, IBM Plex Sans with IBM Plex Mono
+for data, and a single signal-orange accent that always means "forecast". Chart colors are checked
+for color-blind separation and contrast in both themes.
 
 ## License
 

@@ -10,11 +10,14 @@ export const COLORS = {
   grid: "var(--chart-grid)",
   axis: "var(--chart-axis)",
   muted: "var(--chart-muted)",
+  ink: "var(--chart-ink)",
+  band: "var(--chart-band)",
+  wash: "var(--chart-wash)",
 } as const;
 
 export const axisProps = {
   stroke: COLORS.axis,
-  tick: { fill: COLORS.muted, fontSize: 11 },
+  tick: { fill: COLORS.muted, fontSize: 10.5, fontFamily: "var(--font-plex-mono)" },
   tickLine: false,
   axisLine: { stroke: COLORS.axis },
 } as const;
@@ -38,7 +41,7 @@ export type LegendItem = { label: string; color: string; kind?: "line" | "dashed
 
 export function ChartLegend({ items, className }: { items: LegendItem[]; className?: string }) {
   return (
-    <ul className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground", className)}>
+    <ul className={cn("flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] text-muted-foreground", className)}>
       {items.map((item) => (
         <li key={item.label} className="flex items-center gap-1.5">
           <Swatch color={item.color} kind={item.kind ?? "line"} />
@@ -51,7 +54,7 @@ export function ChartLegend({ items, className }: { items: LegendItem[]; classNa
 
 function Swatch({ color, kind }: { color: string; kind: NonNullable<LegendItem["kind"]> }) {
   if (kind === "area") {
-    return <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: color, opacity: 0.25 }} />;
+    return <span className="inline-block h-2.5 w-4 rounded-sm" style={{ background: color === COLORS.forecast ? COLORS.band : color, opacity: color === COLORS.forecast ? 1 : 0.25 }} />;
   }
   if (kind === "bar") {
     return <span className="inline-block size-2.5 rounded-sm" style={{ background: color }} />;
@@ -76,8 +79,8 @@ export type TooltipRow = { label: string; value: string; color?: string; kind?: 
 
 export function TooltipBox({ title, rows }: { title: string; rows: TooltipRow[] }) {
   return (
-    <div className="min-w-44 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
-      <div className="mb-1.5 font-medium">{title}</div>
+    <div className="min-w-48 rounded-md border bg-popover px-3 py-2.5 text-xs text-popover-foreground shadow-[0_8px_24px_-12px_rgb(0_0_0/0.25)]">
+      <div className="eyebrow mb-2">{title}</div>
       <div className="flex flex-col gap-1">
         {rows.map((r) => (
           <div key={r.label} className="flex items-center justify-between gap-4">
