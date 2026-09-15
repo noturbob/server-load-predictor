@@ -1,12 +1,11 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 
 import { Logo } from "@/components/logo";
 import { SimControls } from "@/components/sim-controls";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -17,7 +16,6 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
@@ -52,15 +50,7 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <SimControls />
-          <button
-            type="button"
-            aria-label="Toggle theme"
-            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="flex size-9 items-center justify-center rounded-md border bg-card text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <Sun className="size-4 dark:hidden" />
-            <Moon className="hidden size-4 dark:block" />
-          </button>
+          <ThemeToggle />
         </div>
       </div>
     </header>
